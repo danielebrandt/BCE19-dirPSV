@@ -1,4 +1,5 @@
-# dirPSV
+# Directional PSV predictions and analyses.
+
 Predictions and measurements of GGP model: directional outlook
 This project contains files with functions written in python related to directional predictions, simulation of synthetic samples and directional analyses based on the simplified zonal giant Gaussian process models presented by Brandt et al. (in prep.).
 
