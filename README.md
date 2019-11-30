@@ -9,7 +9,7 @@ The files that contains the main functions are:
 
 1) PSV_dir_predictions.py:
 	Contains theoretical determinations for variances and covariances for a given zonal GGP model, the pdf map of the GGP model s(u) in equal-area coordinates, mean values, standard deviations. 
-	A jupyter notebook "Directional_PSV_analises_functionsfromBrandtetal2019.ipynb" was created to help the user know more about these functions.
+	A jupyter notebook "Theoretical_predictions_directional_analises_GGPmodels_Brandtetal2019.ipynb" was created to help the user know more about these functions.
 
 2) Synthetic_directions_GGP.py
 	Contains functions for simulating synthetic directions and calculating the PSV directional measurements.
