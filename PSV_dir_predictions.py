@@ -213,27 +213,51 @@ def Cov_modelo(GGPmodel,lat, degree):
     Cov[2,2] = sig_br2(degree,alpha,beta,theta,sig10_2,sig11_2,sig20_2,sig21_2,sig22_2)
     return Cov
 	
-def xy_eq2u_3D(x,y):
+def xy_eq2u_3D(x,y,hem=1):
     """From a given x, y pair from an equal area plot I find u from 3D coordinate system
     the vector u = (u1,u2,u3) is unitary (size 1) and points to Z vertical
     this function returns one array of lenght 3"""
     u=np.zeros(3)
-    u[0]=y*np.sqrt(1 - (1 - x**2 - y**2)**2)/np.sqrt(x**2 + y**2)
-    u[1]=x*np.sqrt(1 - (1 - x**2 - y**2)**2)/np.sqrt(x**2 + y**2)
-    u[2]=(1-x**2 - y**2 )
+    if x==0 and y==0:
+        u[0] = 0.
+        u[1] = 0.
+    else:
+        u[0]=y*np.sqrt(1 - (1 - x**2 - y**2)**2)/np.sqrt(x**2 + y**2)
+        u[1]=x*np.sqrt(1 - (1 - x**2 - y**2)**2)/np.sqrt(x**2 + y**2)
+    if hem==1:
+        u[2] = 1 - x**2 - y**2
+    if hem == -1:
+        u[2] = -(1 - x**2 - y**2)
     return u
+
+def u3D_2_xyeq(v):
+    """
+    
+    for a given vector in 3D u = (u0,u1,u2)
+    it returns the x and y of equal area projection
+    
+    """
+    u = v/np.sqrt(v[0]**2+v[1]**2+v[2]**2)
+    x = u[1]*np.sqrt(1 - np.abs(u[2]))/np.sqrt(u[0]**2 + u[1]**2)
+    y = u[0]*np.sqrt(1 - np.abs(u[2]))/np.sqrt(u[0]**2 + u[1]**2)
+    
+    return x,y
 
 def su(x,y,hem,Lamb,m_norm,m):
     """
-	Returns the density function su from Khokhlov et al 2013 for a given x and y
+	Returns the density function su from Khokhlov et al 2006 for a given x and y
 	GGPmodel is a dictionary with the parameters of a zonal GGP
 	degree - is the degree in which the covariance is calculated
 	dx and dy are the space in X and Y axes of the equal area projection
 	hem is the hemisphere side (1 means positive, -1 means negative) 
 	"""
     u = np.zeros(3)
-    u[0] = y*np.sqrt(1 - (1-x**2 - y**2)**2) / np.sqrt(x**2 + y**2)
-    u[1] = x*np.sqrt(1 - (1-x**2 - y**2)**2) / np.sqrt(x**2 + y**2)
+    if x==0 and y==0:
+        u[0] = 0.
+        u[1] = 0.
+    else:
+        u[0] = y*np.sqrt(1 - (1-x**2 - y**2)**2) / np.sqrt(x**2 + y**2)
+        u[1] = x*np.sqrt(1 - (1-x**2 - y**2)**2) / np.sqrt(x**2 + y**2)
     if hem==1:
         u[2] = 1 - x**2 - y**2
     if hem == -1:
@@ -298,7 +322,7 @@ def Rt(theta):
 	
 def su_GGPmodel_r(GGPmodel,lat,degree,XX,YY,hem):
     """
-	Returns a map of the density function su from Khokhlov et al 2006
+	Returns a map of the density function su from Khokhlov et al 2013
 	rotated to the center of the projection
 	GGPmodel is a dictionary with the parameters of a zonal GGP
 	degree - is the degree in which the covariance is calculated
@@ -366,6 +390,7 @@ def s_lm(l,m,alpha,beta,sig10_2,sig11_2,sig20_2,sig21_2,sig22_2):
             s_lm2 = sig22_2
         
     return np.sqrt(s_lm2)
+
 def s_lmGGP(terms,GGPmodel):
     
     """
@@ -427,8 +452,6 @@ def s_lmGGP(terms,GGPmodel):
                 all_s.append(s)
                 degrees.append(deg)
     return all_s,degrees
-
-	
 
 def intxy(M,Integ):
     """
@@ -763,7 +786,7 @@ def prediction_x_y_std_E_A_GGP(lats,GGPmodel,imprima=True, degree=8,dx=0.01,dy=0
         Mod[i,2] = ymm
         Mod[i,3] = xstdm
         Mod[i,4] = ystdm
-        Mod[i,5] = ystdm/xstdm
+        Mod[i,5] = (ystdm**2)/(xstdm**2)
         Mod[i,6] = np.sqrt((ystdm*xstdm)**2 - covxym**2)
         
     return Mod
