@@ -39,8 +39,7 @@ def simulations_GGP(lat,GGPmodel,Nsim,plot=True):
         plot_syn_directions(lista_sim, lista_xy, lista_r, lista_xyr,GGPmodel['name'],lat)
     return lista_sim, lista_xy, lista_r, lista_xyr
 
-def dii_fromGGPmodels(N,L,GGPmodel): 
-    
+def dii_fromGGPmodels(N,L,GGPmodel, degree=8): 
     
     """ 
     generates a set of vectors (declination, inclination and intensity)
@@ -65,9 +64,9 @@ def dii_fromGGPmodels(N,L,GGPmodel):
     Imax=0
     d_i_i= np.zeros((N,3))
     for k in range(N): 
-        gh=GGPgh(8,GGPmodel)[0] #this function returns gh and sigmas, then we take only gh 
+        gh=GGPgh(degree,GGPmodel)[0] #this function returns gh and sigmas, then we take only gh 
         long=random.randint(0,360) # get a random longitude, between 0 and 359
-        vec= pmag.getvec(gh,L,long)  # send field model and lat to getvec - the vector has also the values of intensity
+        vec= getvec_geocentric(gh,L,long)  # send field model and lat to getvec - the vector has also the values of intensity
         if vec[2]>=Imax:
             vec[0]+=D
             if k%2==0 and R==1:
@@ -76,8 +75,37 @@ def dii_fromGGPmodels(N,L,GGPmodel):
             if vec[0]>=360.:vec[0]-=360.
             d_i_i[k,0] = vec[0] #dec
             d_i_i[k,1] = vec[1] #inc
-            d_i_i[k,2] = vec[2] #intensity
-    return d_i_i      
+            d_i_i[k,2] = vec[2] #has the value of intensity, but I take only dec and inc
+    return d_i_i
+
+def getvec_geocentric(gh, lat, lon):
+    """
+    from pmagpy - itype = 2 and alt = 6371.004
+    Evaluates the vector at a given latitude and longitude for a specified
+    set of coefficients
+    Parameters
+    ----------
+    gh : a list of gauss coefficients
+    lat : latitude of location
+    long : longitude of location
+    Returns
+    -------
+    vec : direction in [dec, inc, intensity]
+    """
+    sv = []
+    pad = 120 - len(gh)
+    for x in range(pad):
+        gh.append(0.)
+    for x in range(len(gh)):
+        sv.append(0.)
+    #! convert to colatitude for MB routine
+    itype = 2
+    colat = 90. - lat
+    date, alt = 2000., 6371.004  # use a dummy date and altitude
+    x, y, z, f = pmag.magsyn(gh, sv, date, date, itype, alt, colat, lon)
+    vec = pmag.cart2dir([x, y, z])
+    vec[2] = f
+    return vec
 
 def GGPgh(terms,GGPmodel):
     
@@ -144,6 +172,7 @@ def GGPgh(terms,GGPmodel):
                 all_s.append(s)
                 hnew=gh[-1]
     return gh, all_s
+
 def s_lm(l,m,alpha,beta,sig10_2,sig11_2,sig20_2,sig21_2,sig22_2):
 	
     """
@@ -270,7 +299,7 @@ def Adir(lista_xy):
 	
 def Elon_linha_sim(lista_xy):
     """
-    It calculates the new elongation using the ratio of y standard deviation /  x standard deviation using a list of results
+    It calculates the new elongation using the ratio of y standard deviation ^2 /  x standard deviation ^2 using a list of results
     in x,y coordinates (equal area coordinates)
     """
    
@@ -278,7 +307,7 @@ def Elon_linha_sim(lista_xy):
     ystd = np.std(lista_xy[:,1],ddof=1)
 	
        
-    return ystd/xstd
+    return (ystd**2)/(xstd**2)
 	
 def detcov_boot(lista_xy, NB):
     """Calculates de bootstrap 95 percent of confidence regions of the 
