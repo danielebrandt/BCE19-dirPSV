@@ -298,7 +298,7 @@ def Rt(theta):
 	
 def su_GGPmodel_r(GGPmodel,lat,degree,XX,YY,hem):
     """
-	Returns a map of the density function su from Khokhlov et al 2013
+	Returns a map of the density function su from Khokhlov et al 2006
 	rotated to the center of the projection
 	GGPmodel is a dictionary with the parameters of a zonal GGP
 	degree - is the degree in which the covariance is calculated
